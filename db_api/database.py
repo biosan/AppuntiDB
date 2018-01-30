@@ -1,8 +1,11 @@
-from db_api.common.utils import ConversionUtils, IDTools
+from db_api.common.utils  import ConversionUtils, IDTools
+from db_api.cloud_storage import B2
+import hashlib, operator, base64
+from functools import reduce
 
 class AppuntiDB():
 
-    def __init__(self, database, users_model, notes_model, tags_model):
+    def __init__(self, database, users_model, notes_model, tags_model, b2_dict):
         self.db = database
         self.UsersModel = users_model.UsersModel
         self.NotesModel = notes_model.NotesModel
@@ -11,6 +14,10 @@ class AppuntiDB():
         self.ConversionUtils = ConversionUtils(self.UsersModel,
                                                self.NotesModel,
                                                self.TagsModel)
+        self.b2 = B2(account_id      = b2_dict['account_id'],
+                     application_key = b2_dict['application_key'],
+                     bucket_id       = b2_dict['bucket_id'],
+                     bucket_name     = b2_dict['bucket_name'])
 
     def all_users(self):
         all = self.UsersModel.query.all()
@@ -60,12 +67,13 @@ class AppuntiDB():
     def add_note(self, name, owner, tags=[]):
         new_nid = self.IDTools.get_new_ID()
         new_note = {
-            'type':  'note',
-            'NID':   new_nid,
-            'name':  name,
+            'type' : 'note',
+            'NID'  : new_nid,
+            'name' : name,
             'owner': owner,
-            'hash':  None,
-            'path':  None
+            'hash' : None,
+            'path' : None,
+            'pages': None
         }
         new_note = self.ConversionUtils.Note_Dict2Model(new_note)
         for tag in tags:
@@ -75,29 +83,69 @@ class AppuntiDB():
         self.db.session.commit()
         return new_nid
 
-    # def add_note_tags(self, nid, tags=[]):
-    #     note = self.NotesModel.query.filter_by(nid=nid)
-    #     note.tags.append(tags)
-    #     self.db.session.add(note)
-    #     self.db.session.commit()
+    def add_note_files(self, nid, files):
+        if self.IDTools.note_exist(nid):
+            note = self.NotesModel.query.filter_by(nid=nid).first()
+        else:
+            abort(404)  ### ADD CORRECT CODE
+        hash = self.__multi_file_hash(files)
+        if len(files) > 1:
+            for part, file in enumerate(files):
+                self.b2.upload(file, nid, hash, part)
+        else:
+            self.b2.upload(files[0], nid, hash)
+        note.path = self.b2.get_path(nid, hash)  ### TODO: Which path when file has more than one part/page?
+        note.hash = hash
+        note.pages = len(files)
+        self.db.session.commit()
 
-    def add_note_file(self, nid, file):
-        hash = sha256(file)
-        s3_path = 'appunti_main_bucket/' + hash + '.' + new_nid
-        s3_hash = upload_file(s3_path, file)
-        if (hash != s3_hash):
-            abort(404)  #### ADD CORRECT CODE
-        notes_json[nid]['hash'] = hash
-        notes_json[nid]['path'] = s3_path
+    def append_note_files(self, nid, files):
+        if self.IDTools.note_exist(nid):
+            note = self.get_note(nid)
+        else:
+            abort(404)  ### ADD CORRECT CODE
+        ### TODO
+        ### PROBLEM: How to update hash on DB and on filename - How to update part number if no previous parts exists?
+        ### Sol1: Hashing: - Combine single file hash with xor
+        ###                - Use BLAKE2 incremental hashing
+        ###                (Still have to update filenames or maybe use a folder...)
+        if len(files) > 1:
+            for part, file in enumerate(files):
+                self.b2.upload(file, nid, hash, part)
+        else:
+            self.b2.upload(files[0], nid, hash)
 
+
+    def get_note_file(self, nid, page=None):
+        if not self.IDTools.note_exist(nid):
+            abort(404)
+        note = self.NotesModel.query.filter_by(nid=nid).first()
+        files = []
+        if page==None:
+            for page_index in range(note.pages):
+                files.append(self.b2.download(nid, note.hash, page_index))
+            return files
+        return self.b2.download(nid, note.hash, page)
+
+    ### Add to common utils
+    def sha256(self, x):
+        return hashlib.sha256(bytes(x)).digest()
+
+    def xor_bytes(self, a, b):
+        return bytes(map(operator.xor, a, b))
+
+    def __multi_file_hash(self, files):
+        out = base64.b16encode(reduce(self.xor_bytes, map(self.sha256, files)))
+        out = str(out)[2:-1]
+        print(out)
+        return out
 
     def get_note(self, nid):
-        abort_if_note_doesnt_exist(nid)
-        note = self.NotesModel.query.filter_by(nid=nid)
+        note = self.NotesModel.query.filter_by(nid=nid).first()
         return self.ConversionUtils.Note_Model2Dict(note)
 
     def del_note(self, nid):
-        note = self.NotesModel.query.filter_by(nid=nid)
+        note = self.NotesModel.query.filter_by(nid=nid).first()
         self.db.session.delete(note)
         self.db.session.commit()
         return note.nid
@@ -105,13 +153,18 @@ class AppuntiDB():
     def update_note(self, nid, name=None, owner=None, tags=None):
         if name == None and owner == None and tags == None:
             return None
+
+        note = self.NotesModel.query.filter_by(nid=nid)
         if name != None:
-            notes_json[nid]['name'] = name
-        if owner != None:
-            notes_json[nid]['owner'] = owner
+            note.name = name
+        if owner != None and self.IDTools.user_exist(owner):
+            note.owner = owner
         if tags != None:
-            notes_json[nid]['tags'] = tags
-        return nid
+            for tag in tags:
+                tag_obj = self.add_tag(tag)
+                new_note.tags.append(tag_obj)
+        self.db.commit()
+        return self.ConversionUtils.Note_Model2Dict(note)
 
     def add_tag(self, name, return_object=True):
         tag = self.TagsModel.query.filter_by(name=name).first()
@@ -130,26 +183,14 @@ class AppuntiDB():
         else:
             return new_tid
 
-    def search(self, query, tags, uid):
+    def search(self, query, tags=[], uid=None):
         if query == None:
             return None
-        ### Fiters stuff
 
-        #if self.IDTools.user_exist(uid):
-        #    matches = self.UsersModel.query.filter_by(uid=uid)
-        #if type(tags) == list:
-        #    for tag in tags:
-        #        matches.
         q = self.NotesModel.query
 
-        print('search method inside AppuntiDB')
-        print('query: {}\ntags: {}\nuid: {}'.format(query, tags, uid))
-
-        if self.IDTools.user_exist(uid):
+        if uid != None and self.IDTools.user_exist(uid):
             q = q.filter_by(owner = uid)
-        else:
-            return None
-
         if type(tags) is list:
             q = q.join(self.TagsModel, self.NotesModel.tags)
             for tag in tags:
@@ -157,15 +198,4 @@ class AppuntiDB():
         if query != None and query != '':
             q = q.filter(self.NotesModel.name.contains(query))
 
-        #q = (self.NotesModel.query
-        #     .filter_by(owner=uid)
-        #     .join(self.TagsModel, self.NotesModel.tags)
-        #     .filter(self.NotesModel.tags.any(self.TagsModel.name==tags[0]))
-        #     .filter(self.NotesModel.name.contains(query)))
-
         return [self.ConversionUtils.Note_Model2Dict(note) for note in q.all()]
-
-        #q = (NotesModel.query
-        #     .filter_by(owner=uid)
-        #     .filter(Notes.tags.any(TagsModel.name == tags))
-        #     .filter(Notes.tags.any(TagsModel.name == tags

@@ -10,5 +10,6 @@ class NotesModel(db.Model):
     creation_date = db.Column(db.DateTime)
     update_date = db.Column(db.DateTime)
     path = db.Column(db.String(128))
+    pages = db.Column(db.Integer())
     tags = db.relationship('TagsModel', secondary=TagsNotesTable, lazy='subquery',
            backref=db.backref('tagsnotes', lazy=True))

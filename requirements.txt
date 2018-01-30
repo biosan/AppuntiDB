@@ -4,3 +4,8 @@ flask_restful
 flask_sqlalchemy
 Flask-Migrate
 Flask-Script
+gevent
+gevent-websocket
+pika
+Flask-Sockets
+requests

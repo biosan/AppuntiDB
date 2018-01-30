@@ -1,0 +1,2 @@
+#!/usr/bin/execlineb -P
+python /app/run.py

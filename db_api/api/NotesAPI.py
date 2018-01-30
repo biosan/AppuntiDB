@@ -2,6 +2,9 @@
 ### Imports ###
 ###############
 from flask_restful import reqparse, Resource
+import werkzeug
+import io
+from flask import send_file, Response, request
 
 
 ########################
@@ -12,6 +15,8 @@ note_parser.add_argument('name')
 note_parser.add_argument('owner')
 note_parser.add_argument('tags')
 
+file_parser = reqparse.RequestParser()
+file_parser.add_argument('file', type=werkzeug.datastructures.FileStorage, location='files', action='append')
 
 ################
 ### Requests ###
@@ -45,3 +50,48 @@ class NoteAPI(Resource):
 
     def delete(self, nid):
         return self.DB.del_note(nid)
+
+
+class NoteFilesAPI(Resource):
+    def __init__(self, DB):
+        self.DB = DB
+
+    def get(self, nid):
+        #files = (file for file in self.DB.get_note_file(nid, page=None))
+        #return Response(files, mimetype='application/octet-stream')
+        file = self.DB.get_note_file(nid, page=None)
+        return send_file(io.BytesIO(file), mimetype='application/octet-stream')
+
+    def put(self, nid):
+        return None
+
+    def post(self, nid):
+        args = file_parser.parse_args()
+        files_bytestring = []
+        print(args)
+        #f = request.files.getlist("file[]")
+        f = args['file']
+        print(f)
+        for file in f:#.getlist('file'):
+            print('File: ', file)
+            #files_bytestring.append(bytes(file.readall()))
+            files_bytestring.append(bytes(file.read()))
+        self.DB.add_note_files(nid, files_bytestring)
+        return 200
+
+    def delete(self, nid):
+        return self.DB.del_note_files(nid, all=True)
+
+
+class NoteFilesPageAPI(Resource):
+    def __init__(self, DB):
+        self.DB = DB
+
+    def get(self, nid, page):
+        return send_file(io.BytesIO(self.DB.get_note_file(nid, page=int(page))), mimetype='application/octet-stream')
+
+    def put(self, nid):
+        return None
+
+    def delete(self, nid):
+        return DB.del_note_files(nid, all=True)

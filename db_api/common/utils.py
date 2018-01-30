@@ -35,7 +35,8 @@ class ConversionUtils():
             'owner': note_model.owner,
             'hash':  note_model.hash,
             'tags':  [],
-            'path':  note_model.path
+            'path':  note_model.path,
+            'pages': note_model.pages
         }
         for tag in note_model.tags:
             note['tags'].append(tag.name)
@@ -46,7 +47,8 @@ class ConversionUtils():
                           name = note_dict['name'],
                           owner = note_dict['owner'],
                           hash = note_dict['hash'],
-                          path = note_dict['path'])
+                          path = note_dict['path'],
+                          pages = note_dict['pages'])
         #for tag in note_dict['tags']:
         #    note.tags.append(tag)
         return note
