@@ -6,10 +6,6 @@ dependencies:
   override:
     - echo "no deps"
 
-test:
-  post:
-    - echo "yay - no tests"
-
 deployment:
   production:
     branch: master
