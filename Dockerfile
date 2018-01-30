@@ -11,7 +11,7 @@ RUN pip3 install -r /app/requirements.txt
 
 ADD ./db_api            /app/db_api
 ADD ./migrations        /app/migrations
-ADD ./manage.py         /app/.
+#ADD ./manage.py         /app/.
 ADD ./run.py            /app/.
 ADD ./run_amqp.py	/app/.
 ADD ./run_all.sh	/app/.
