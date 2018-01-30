@@ -20,12 +20,12 @@ def _make_context():
     return {'app': app, 'db': db, 'User': User}
 
 
-@manager.command
-def test():
-    """Run the tests."""
-    import pytest
-    exit_code = pytest.main(['tests', '-q'])
-    return exit_code
+#@manager.command
+#def test():
+#    """Run the tests."""
+#    import pytest
+#    exit_code = pytest.main(['tests', '-q'])
+#    return exit_code
 
 
 manager.add_command('server', Server())
