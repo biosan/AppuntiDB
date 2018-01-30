@@ -27,7 +27,7 @@ EXPOSE 80
 #CMD ./run_all.sh
 #CMD ["python", "run.py"]
 #CMD ["python", "run_amqp.py"]
-CMD ["bash", "run_all.sh"]
+CMD ["sh", "run_all.sh"]
 
 #ENV B2_ACCOUNT_ID=''
 #ENV B2_APPLICATION_KEY=''
