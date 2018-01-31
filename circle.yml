@@ -6,6 +6,10 @@ dependencies:
   cache_directories:
     - ~/docker
 
+test:
+  override:
+    - echo "done"
+
 deployment:
   staging:
     branch: master
