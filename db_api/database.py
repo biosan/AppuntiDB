@@ -27,9 +27,9 @@ class AppuntiDB():
         new_uid = self.IDTools.get_new_ID()
         new_user = {
             'type':     'user',
-            'UID':      new_uid,
-            'username': username,
-            'mail':     mail
+            'UID':      str(new_uid),
+            'username': str(username),
+            'mail':     str(mail)
             }
         new_user = self.ConversionUtils.User_Dict2Model(new_user)
         self.db.session.add(new_user)

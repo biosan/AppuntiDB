@@ -8,6 +8,7 @@ app = create_app()
 if __name__ == '__main__':
     from gevent import pywsgi
     from geventwebsocket.handler import WebSocketHandler
+    app.debug = True
     server = pywsgi.WSGIServer((app.config['BASE_ADDRESS'], app.config['PORT']), app, handler_class=WebSocketHandler)
     server.serve_forever()
     #port = int(os.environ.get("PORT", 5000))

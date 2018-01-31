@@ -24,6 +24,7 @@ class UsersAPI(Resource):
 
     def post(self):
         args = user_parser.parse_args()
+        print('Hello: ', args)
         new_uid = self.DB.add_user(username = args['username'], mail = args['mail'])
         return {'uid': new_uid}, 201
 
