@@ -18,8 +18,8 @@ class BaseConfig(object):
 
    AMQP_BROKER_URL = os.environ.get('AMQP_BROKER_URL', 'localhost')
 
-   BASE_ADDRESS = os.environ.get('BASE_ADDRESS', '0.0.0.0')
-   PORT = int(os.environ.get('BASE_PORT', 80))
+   BASE_ADDRESS = os.environ.get('ADDRESS', '0.0.0.0')
+   PORT = int(os.environ.get('PORT', 80))
 
 class DefaultConfig(BaseConfig):
 
