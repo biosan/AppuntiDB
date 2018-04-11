@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <title>ProjectNote</title>
+    <script type="text/javascript">
+
+        var server_url = "http://localhost:5000/";
+        var server_short_url = "localhost:5000/";
+        var database_url = "???";
+
+        var userID = Math.floor(Math.random()*10000).toString();
+        var noteID = "";
+        var currentPageNumber = 1;
+
+        var server_ws = new WebSocket("ws://"+server_short_url+"view_note");
+        //var database_ws = new WebSocket("db url");
+
+        server_ws.onmessage = function (ev) { console.log("Server message: "+ev.data) };
+        //database_ws.onmessage = displayPageText();
+
+        function load(uri, callback)
+        {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.timeout = 0;
+            xmlHttp.onreadystatechange = function(e) {
+                if (this.readyState == 4 && this.status == 200) {
+                    callback(this.responseText);
+                }
+            };
+
+            xmlHttp.open("GET", server_url+uri, true);
+            xmlHttp.send(null);
+        }
+
+        function displayFoundNotes(text){
+            var display = document.getElementById("span");
+            console.log(text);
+            var list = JSON.parse(text);
+            var output = "";
+            for(var i = 0; i < list.length; i++){
+                var element = list[i];
+                output += transformListElement(element);
+            }
+            console.log(output);
+            display.innerHTML = output;
+        }
+
+        function transformListElement(element){
+            var name = element["title"];
+            var address = element["ID"];
+            currentPageNumber = 0;
+            return `<span onclick="test('${ID}');">${title}</span><br>`;
+        }
+
+        function test(txt){
+            console.log(txt);
+        }
+
+        function search() {
+            load("uritest", viewtest);
+        }
+
+        function test_ws() {
+            sendPageRequest("marciello","analisi",3);
+        }
+
+        function openNote(requestNoteID){
+            currentPageNumber = 1;
+            noteID = requestNoteID;
+            sendPageRequest(userID,noteID,currentPageNumber);
+        }
+
+        function nextPage() {
+            currentPageNumber++;
+            sendPageRequest(userID,noteID,currentPageNumber);
+        }
+
+        function prevPage() {
+            currentPageNumber--;
+            sendPageRequest(userID,noteID,currentPageNumber);
+        }
+
+        function sendPageRequest(userID, noteID, pageNumber) {
+            var pageRequest = {
+                userID:userID,
+                noteID:noteID,
+                pageNumber:pageNumber
+            }
+            var pageRequestString = JSON.stringify(pageRequest);
+            server_ws.send(pageRequestString);
+        }
+
+        function displayPageText(JSONString) {
+            var contents = JSON.parse(JSONString);
+            var text = contents["text"];
+            document.getElementById("span").innerText = text;
+        }
+
+        function searchNotes(){
+            var subject = document.searchForm.subject.value;
+            var teacher = document.searchForm.teacher.value;
+            var searchString = `search?subject=${subject}&teacher=${teacher}`
+            log(server_url+searchString);
+            load(searchString, displayFoundNotes);
+        }
+
+        function log(txt) {
+            console.log(txt);
+        }
+
+
+
+    </script>
+</head>
+<body>
+<form name="searchForm" onsubmit="searchNotes()">
+<input name="subject" type="text" size="100" placeholder="Subject"><br>
+<input name="teacher" type="text" size="100" placeholder="Teacher"><br>
+<input name="search" type="submit" value="Search"><br>
+</form>
+<input name="ws_test" type="button" value="TEST WS" onclick="test_ws();"><br>
+<span id="span">Testing</span>
+</body>
+</html>

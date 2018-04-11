@@ -1,0 +1,2 @@
+http_n_websocket: python3 ./run.py
+amqp: python3 ./run_amqp.py

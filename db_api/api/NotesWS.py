@@ -26,7 +26,7 @@ class WS():
             elif message.isdigit():
                 new_page = int(message)
                 if new_page == page:
-                    'No change'
+                    ws.send('No change')
                     update = False
             else:
                 ws.send('Error: Wrong command')

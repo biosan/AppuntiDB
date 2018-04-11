@@ -26,8 +26,8 @@ EXPOSE 5000
 EXPOSE 8000
 
 # Run the Flask app
-#CMD ./run_all.sh
-CMD python run.py
+CMD ./run_all.sh
+#CMD python run.py
 #CMD ["python", "run.py"]
 #CMD ["python", "run_amqp.py"]
 #CMD ["sh", "run_all.sh"]
