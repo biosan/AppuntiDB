@@ -34,12 +34,20 @@ class AMQP():
         ### Send a request to websocket process to send that page of that note to that user
 
     def search_callback(self, ch, method, props, body):
-        body_json = json.loads(body)
-        #body_json['subject']
-        #body_json['teacher']
-        #body_json['queryID']
+        print("This is AMQP raw body:", body, file=sys.stderr)
+        try:
+            body_json = json.loads(body)
+            body_json['subject']
+            body_json['teacher']
+            body_json['queryID']
+        except:
+            print("ERROR", file=sys.stderr)
+            return
         search_query = ''
-        search_tags  = list(filter(lambda x: x != None, [body_json.get('subject'), body_json.get('teacher')]))
+        try:
+            search_tags  = list(filter(lambda x: x != None, [body_json.get('subject'), body_json.get('teacher')]))
+        except AttributeError:
+            search_tags = None
         search_uid   = None
         print("This is AMQP body:", body_json, file=sys.stderr)
         results = self.DB.search(search_query, search_tags, search_uid)
