@@ -1,7 +1,5 @@
 FROM alpine:latest
 
-WORKDIR /app
-
 COPY ./requirements.txt  .
 
 RUN apk update && \
@@ -11,6 +9,8 @@ RUN apk update && \
     pip3 install --upgrade pip setuptools && \
     pip3 install --no-cache-dir -r ./requirements.txt && \
     apk del build-base postgresql-dev python3-dev
+
+WORKDIR /app
 
 COPY ./db_api         .
 COPY ./migrations     .
