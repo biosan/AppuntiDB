@@ -22,6 +22,7 @@ class AMQP():
         self.channel.basic_consume(self.notes_callback,  queue=self.notes_queue)
         self.channel.basic_consume(self.search_callback, queue=self.search_queue)
         self.channel.basic_qos(prefetch_count=1)
+        print("AMQP Init", file=sys.stderr)
 
     def users_callback (self, ch, method, props, body):
         print('Received :', body)
@@ -34,6 +35,7 @@ class AMQP():
         ### Send a request to websocket process to send that page of that note to that user
 
     def search_callback(self, ch, method, props, body):
+        print("AMQP Search Callback", file=sys.stderr)
         print("This is AMQP raw body:", body, file=sys.stderr)
         try:
             body_json = json.loads(body)
