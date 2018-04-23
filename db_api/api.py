@@ -77,15 +77,20 @@ def configure_extensions(app, db):
     flask_api.add_resource(NoteFilesPageAPI,
                            COMMON_CONSTANTS.BASE_URI+'/files/<nid>/<page>',
                            resource_class_args=[DB])
+    flask_api.add_resource(NotesFilesPageFromAMQP_API,
+                           COMMON_CONSTANTS.BASE_URI+'/amqp/<nid>/<page>/<userID>',
+                           resource_class_args=[DB])
+
+
 
     # Flask-Sockets
     ### TODO Find a more Pythonic way, this kind of workaroud sucks in every language
-    websocket.init_app(app)
-    notes_ws = WS(DB)
-    @websocket.route('/ws')
-    def MyWSPageHandler(ws):
-        return notes_ws.WSPageHandler(ws)
+    # websocket.init_app(app)
+    # notes_ws = WS(DB)
+    # @websocket.route('/ws')
+    # def MyWSPageHandler(ws):
+    #     return notes_ws.WSPageHandler(ws)
 
-if __name__ == '__main__':
-    app = create_app(Config.DefaultConfig)
-    app.run(host='0.0.0.0', port=5000, debug=True)
+#if __name__ == '__main__':
+#    app = create_app(Config.DefaultConfig)
+#    app.run(host='0.0.0.0', port=5000, debug=True)

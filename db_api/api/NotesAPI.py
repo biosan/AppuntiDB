@@ -5,6 +5,7 @@ from flask_restful import reqparse, Resource
 import werkzeug
 import io
 from flask import send_file, Response, request
+from flask_socketio import *
 
 
 ########################
@@ -95,3 +96,13 @@ class NoteFilesPageAPI(Resource):
 
     def delete(self, nid):
         return DB.del_note_files(nid, all=True)
+
+class NotesFilesPageFromAMQP_API(Resource):
+    def __init__(self, DB):
+        self.DB = DB
+
+    def get(self, nid, page, userID):
+        note_file = self.DB.get_note_file(nid, page=int(page))
+        sid = DB.userID_to_SID[userID]
+        socketio.send(note_file_json, json=True, room=sid, namespace='/ws')
+        return 200

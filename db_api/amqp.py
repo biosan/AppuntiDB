@@ -1,11 +1,14 @@
 import pika
 import json
 import sys
+import os
 import secrets
+import requests
+
+from db_api.common import constants as COMMON_CONSTANTS
 
 class AMQP():
-    def __init__(self, broker_url, DB, users_queue, notes_queue, search_queue, search_reply_queue):
-        self.DB = DB
+    def __init__(self, broker_url, users_queue, notes_queue, search_queue, search_reply_queue):
         self.params = pika.URLParameters(broker_url)
         self.params.socket_timeout = 5
         self.connection   = pika.BlockingConnection(self.params)
@@ -27,12 +30,31 @@ class AMQP():
     def users_callback (self, ch, method, props, body):
         print('Received :', body)
 
+
     def notes_callback (self, ch, method, props, body):
-        body_json = json.loads(body)
-        body_json['note']
-        body_json['page']
-        body_json['user_ID']
-        ### Send a request to websocket process to send that page of that note to that user
+        print("AMQP Notes Callback", file=sys.stderr)
+        print("This is AMQP raw body:", body, file=sys.stderr)
+        try:
+            body_json = json.loads(body)
+            body_json['note']
+            body_json['page']
+            body_json['user_ID']
+        except:
+            print("ERROR Parsing json from amqp note page request", file=sys.stderr)
+            return
+        try:
+            ### Send a request to websocket process to send that page of that note to that user
+            requests.get('localhost:{}/{}/amqp/{}/{}/{}'.format(os.environ.get('PORT'),
+                                                                COMMON_CONSTANTS.BASE_URI,
+                                                                body_json['note'],
+                                                                body_json['page'],
+                                                                body_json['user_ID']))
+            ch.basic_ack(delivery_tag = method.delivery_tag)
+        except:
+            print("ERROR Sending note page http request from amqp callback to flask", file=sys.stderr)
+            return
+
+
 
     def search_callback(self, ch, method, props, body):
         print("AMQP Search Callback", file=sys.stderr)
@@ -48,11 +70,16 @@ class AMQP():
         search_query = ''
         try:
             search_tags  = list(filter(lambda x: x != None, [body_json.get('subject'), body_json.get('teacher')]))
+            search_tags_string = ";".join(search_tags)
         except AttributeError:
             search_tags = None
         search_uid   = None
         print("This is AMQP body:", body_json, file=sys.stderr)
-        results = self.DB.search(search_query, search_tags, search_uid)
+
+        ###results = self.DB.search(search_query, search_tags, search_uid)
+        results = requests.get('localhost:{}/{}/search'.format(os.environ.get('PORT'), COMMON_CONSTANTS.BASE_URI),
+                               params={'query':'', 'tags':search_tags_string})
+
         results = [(result['name'], result['NID']) for result in results]
         results = {'queryID':body_json['queryID'],'results':results}
         output_json = json.dumps(results)

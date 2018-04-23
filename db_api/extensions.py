@@ -6,6 +6,6 @@ db = SQLAlchemy()
 from flask_migrate import Migrate
 migrate = Migrate()
 
-# Flask-Sockets (WebSockets with gevent)
-from flask_sockets import Sockets
-websocket = Sockets()
+# Flask-SocketIO
+from flask_socketio import SocketIO
+socketio = SocketIO()

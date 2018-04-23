@@ -14,7 +14,7 @@ class BaseConfig(object):
    B2_ACCOUNT_ID      = os.environ.get('B2_ACCOUNT_ID')#, '768fd2cae9aa')
    B2_APPLICATION_KEY = os.environ.get('B2_APPLICATION_KEY')#, '000e640240ab835b063f8c8cc27d45ef97f43d1f31')
 
-   SQLALCHEMY_DATABASE_URI = ''
+   SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
    AMQP_BROKER_URL = os.environ.get('AMQP_BROKER_URL', 'localhost')
 
@@ -49,10 +49,11 @@ class StagingConfig(DefaultConfig):
 
 class ProdConfig(DefaultConfig):
     # config for production environment
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
-    AMQP_BROKER_URL         = os.environ.get('AMQP_BROKER_URL')
+    #SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    #AMQP_BROKER_URL         = os.environ.get('AMQP_BROKER_URL')
     B2_BUCKET_ID            = 'c7e6f83f4d122cfa6e190a1a'
     B2_BUCKET_NAME          = 'appunti-main-bucket'
+    pass
 
 
 

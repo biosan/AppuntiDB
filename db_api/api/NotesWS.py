@@ -1,6 +1,30 @@
-from db_api.extensions   import websocket
+import sys
+
+from db_api.extensions   import socketio
 from db_api.common.utils import IDTools
 
+
+class NotesSocketIO():
+    def __init__(self, DB):
+        self.DB = DB
+
+    def on_connect(self):
+        pass
+
+    def on_disconnect(self):
+        # Delete userID from list
+        self.DB.userID_to_SID.pop(str(request.sid))
+
+    def on_json(self, json):
+        try:
+            json['user_ID']
+        except:
+            print('No user_ID', sys.stderr)
+            send('Invalid JSON. No "user_ID"', room=request.sid)
+            return
+        self.DB.userID_to_SID[request.sid] = json['user_ID']
+
+"""
 class WS():
     def __init__(self, DB):
         self.DB = DB
@@ -37,6 +61,7 @@ class WS():
             elif 0 < new_page < max_pages and update:
                 page == new_page
                 ws.send(self.DB.get_note_file(nid, page))  ### Maybe something more performant (some caching)
+"""
 
 """
 class NotesWS(Namespace):

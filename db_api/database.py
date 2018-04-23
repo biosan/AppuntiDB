@@ -18,6 +18,7 @@ class AppuntiDB():
                      application_key = b2_dict['application_key'],
                      bucket_id       = b2_dict['bucket_id'],
                      bucket_name     = b2_dict['bucket_name'])
+        self.userID_to_SID = dict()
 
     def all_users(self):
         all = self.UsersModel.query.all()

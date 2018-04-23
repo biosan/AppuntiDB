@@ -1,11 +1,10 @@
 flask
 flask_restful
 #psycopg2
-flask_sqlalchemy
 Flask-Migrate
 Flask-Script
+flask_sqlalchemy
+flask-socketio
 gevent
-gevent-websocket
 pika
-Flask-Sockets
 requests
