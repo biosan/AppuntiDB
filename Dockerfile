@@ -19,7 +19,5 @@ COPY ./run.py         .
 COPY ./run_amqp.py    .
 COPY ./run_all.sh     .
 
-WORKDIR /app
-
 # Run Flask app and Pika AMQP client
 CMD ["sh", "run_all.sh"]
