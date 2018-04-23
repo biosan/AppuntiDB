@@ -76,9 +76,14 @@ class AMQP():
         search_uid   = None
         print("This is AMQP body:", body_json, file=sys.stderr)
 
-        ###results = self.DB.search(search_query, search_tags, search_uid)
-        results = requests.get('localhost:{}/{}/search'.format(os.environ.get('PORT'), COMMON_CONSTANTS.BASE_URI),
-                               params={'query':'', 'tags':search_tags_string})
+        try:
+            ###results = self.DB.search(search_query, search_tags, search_uid)
+            results = requests.get('http://localhost:{}{}/search'.format(os.environ.get('PORT'), COMMON_CONSTANTS.BASE_URI),
+                                   params={'query':'', 'tags':search_tags_string})
+            results = results.json()
+        except:
+            print("ERROR no response from API search call", body_json, file=sys.stderr)
+            return None
 
         results = [(result['name'], result['NID']) for result in results]
         results = {'queryID':body_json['queryID'],'results':results}

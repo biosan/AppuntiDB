@@ -1,4 +1,6 @@
 import sys
+from flask_socketio import send
+from flask import request
 
 from db_api.extensions   import socketio
 from db_api.common.utils import IDTools
@@ -9,11 +11,15 @@ class NotesSocketIO():
         self.DB = DB
 
     def on_connect(self):
+        send('Welcome', room=request.sid)
         pass
 
     def on_disconnect(self):
         # Delete userID from list
         self.DB.userID_to_SID.pop(str(request.sid))
+
+    def on_message(self, msg):
+        send('Echo: ' + msg, room=request.sid)
 
     def on_json(self, json):
         try:

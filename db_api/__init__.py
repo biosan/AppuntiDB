@@ -82,8 +82,9 @@ def configure_extensions(app, db):
     #     return notes_ws.WSPageHandler(ws)
     notes_ws = NotesSocketIO(DB)
     socketio.init_app(app)
-    socketio.on_event('connect',    notes_ws.on_connect,    namespace='/ws')
-    socketio.on_event('disconnect', notes_ws.on_disconnect, namespace='/ws')
-    socketio.on_event('json',       notes_ws.on_json,       namespace='/ws')
+    socketio.on_event('connect',    notes_ws.on_connect,    namespace='/')
+    socketio.on_event('disconnect', notes_ws.on_disconnect, namespace='/')
+    socketio.on_event('json',       notes_ws.on_json,       namespace='/')
+    socketio.on_event('message',    notes_ws.on_message,    namespace='/')
 
     return db, DB, flask_api, socketio

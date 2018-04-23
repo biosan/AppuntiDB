@@ -5,7 +5,8 @@ from flask_restful import reqparse, Resource
 import werkzeug
 import io
 from flask import send_file, Response, request
-from flask_socketio import *
+from flask_socketio import send
+import json
 
 
 ########################
@@ -104,5 +105,6 @@ class NotesFilesPageFromAMQP_API(Resource):
     def get(self, nid, page, userID):
         note_file = self.DB.get_note_file(nid, page=int(page))
         sid = DB.userID_to_SID[userID]
-        socketio.send(note_file_json, json=True, room=sid, namespace='/ws')
+        note_file_json = json.dump({'data':str(note_file)})
+        send(note_file_json, json=True, room=sid, namespace='/ws')
         return 200
