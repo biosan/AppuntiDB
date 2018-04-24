@@ -16,7 +16,11 @@ class NotesSocketIO():
 
     def on_disconnect(self):
         # Delete userID from list
-        self.DB.userID_to_SID.pop(str(request.sid))
+        try:
+            self.DB.userID_to_SID.pop(str(request.sid))
+        except:
+            print('No user_ID<->SID relation', sys.stderr)
+            return
 
     def on_message(self, msg):
         send('Echo: ' + msg, room=request.sid)
