@@ -1,6 +1,5 @@
 FROM alpine:latest
 
-WORKDIR /app/
 
 COPY ./requirements.txt  .
 
@@ -13,11 +12,14 @@ RUN apk update && \
     apk del build-base python3-dev
 
 RUN apk add --no-cache python py-pip && pip2 install --no-cache-dir supervisor
-COPY supervisord.conf /etc/.
-COPY logs/	      ./logs
 
-COPY db_api/        ./db_api
-COPY migrations/    ./migrations
+WORKDIR /app
+
+COPY supervisord.conf /etc/.
+COPY logs	    ./logs
+
+COPY db_api         ./db_api
+COPY migrations     ./migrations
 COPY manage.py      .
 COPY run.py         .
 COPY run_amqp.py    .
