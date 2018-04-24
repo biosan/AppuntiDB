@@ -16,10 +16,10 @@ RUN apk add --no-cache python py-pip && pip2 install --no-cache-dir supervisor
 WORKDIR /app
 
 COPY supervisord.conf /etc/.
-COPY ./logs/	      ./logs/
+COPY ./logs/	      .
 
-COPY ./db_api/        ./db_api/
-COPY ./migrations/    ./migrations/
+COPY ./db_api/        .
+COPY ./migrations/    .
 COPY ./manage.py      .
 COPY ./run.py         .
 COPY ./run_amqp.py    .
