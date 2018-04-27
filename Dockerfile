@@ -1,5 +1,6 @@
 FROM alpine:latest
 
+WORKDIR /app
 
 COPY ./requirements.txt  .
 
@@ -12,18 +13,15 @@ RUN apk update && \
     apk del build-base python3-dev
 
 RUN apk add --no-cache python py-pip && pip2 install --no-cache-dir supervisor
-
-WORKDIR /app
-
 COPY supervisord.conf /etc/.
-COPY ./logs/	      .
+COPY app_logs       ./app_logs
 
-COPY ./db_api/        .
-COPY ./migrations/    .
-COPY ./manage.py      .
-COPY ./run.py         .
-COPY ./run_amqp.py    .
-COPY ./run_all.sh     .
+COPY db_api         ./db_api
+COPY migrations     ./migrations
+COPY manage.py      .
+COPY run.py         .
+COPY run_amqp.py    .
+COPY run_all.sh     .
 
 # Run Flask app and Pika AMQP client
 #CMD ["sh", "run_all.sh"]

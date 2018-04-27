@@ -22,8 +22,8 @@ class AMQP():
         self.channel.queue_declare(queue=self.search_queue)
         self.channel.queue_declare(queue=self.search_reply_queue)
         self.channel.basic_consume(self.users_callback,  queue=self.users_queue,  no_ack=True)
-        self.channel.basic_consume(self.notes_callback,  queue=self.notes_queue)
-        self.channel.basic_consume(self.search_callback, queue=self.search_queue)
+        self.channel.basic_consume(self.notes_callback,  queue=self.notes_queue, no_ack=True)
+        self.channel.basic_consume(self.search_callback, queue=self.search_queue, no_ack=True)
         self.channel.basic_qos(prefetch_count=1)
         print("AMQP Init", file=sys.stderr)
 
@@ -49,7 +49,7 @@ class AMQP():
                                                                 body_json['note'],
                                                                 body_json['page'],
                                                                 body_json['user_ID']))
-            ch.basic_ack(delivery_tag = method.delivery_tag)
+            #ch.basic_ack(delivery_tag = method.delivery_tag)
         except:
             print("ERROR Sending note page http request from amqp callback to flask", file=sys.stderr)
             return
@@ -98,7 +98,7 @@ class AMQP():
                          routing_key=reply_queue,
                          properties=pika.BasicProperties(correlation_id = corr_id),
                          body=str(output_json))
-        ch.basic_ack(delivery_tag = method.delivery_tag)
+        #ch.basic_ack(delivery_tag = method.delivery_tag)
 
     def start(self):
         self.channel.start_consuming()

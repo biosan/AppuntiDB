@@ -1,6 +1,6 @@
 flask
 flask_restful
-psycopg2
+psycopg2-binary
 Flask-Migrate
 Flask-Script
 flask_sqlalchemy
