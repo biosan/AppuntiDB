@@ -85,8 +85,8 @@ class AMQP():
             print("ERROR no response from API search call", body_json, file=sys.stderr)
             return None
 
-        results = [(result['name'], result['NID']) for result in results]
-        results = {'queryID':body_json['queryID'],'results':results}
+        results = [{"title":result['name'], "ID":result['NID']} for result in results]
+        results = {'query_ID':body_json['queryID'],'note_list':results}
         output_json = json.dumps(results)
         print("This is AMQP response:", output_json, file=sys.stderr)
         print("This is AMQP props.reply_to:", props.reply_to, file=sys.stderr)
