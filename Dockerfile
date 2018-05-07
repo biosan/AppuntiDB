@@ -14,7 +14,8 @@ RUN apk update && \
 
 RUN apk add --no-cache python py-pip && pip2 install --no-cache-dir supervisor
 COPY supervisord.conf /etc/.
-COPY app_logs       ./app_logs
+RUN mkdir ./app_logs
+#COPY app_logs       ./app_logs
 
 COPY db_api         ./db_api
 COPY migrations     ./migrations
