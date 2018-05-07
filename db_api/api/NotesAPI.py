@@ -106,5 +106,5 @@ class NotesFilesPageFromAMQP_API(Resource):
         note_file = self.DB.get_note_file(nid, page=int(page))
         sid = DB.userID_to_SID[userID]
         note_file_json = json.dump({'data':str(note_file)})
-        send(note_file_json, json=True, room=sid, namespace='/ws')
+        send(note_file_json, json=True, room=sid, namespace='/')
         return 200
