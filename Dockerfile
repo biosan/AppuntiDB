@@ -25,8 +25,9 @@ COPY run.py         .
 COPY run_amqp.py    .
 COPY run_all.sh     .
 
-RUN adduser -D server && chown -R server /app #&& chmod -R 755 /app
-USER server
+RUN adduser -D myuser && chown -R myuser /app #&& chmod -R 755 /app
+
+USER myuser
 
 # Run Flask app and Pika AMQP client
 #CMD ["sh", "run_all.sh"]
