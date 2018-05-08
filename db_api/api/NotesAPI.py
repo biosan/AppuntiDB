@@ -96,7 +96,7 @@ class NoteFilesPageAPI(Resource):
         return None
 
     def delete(self, nid):
-        return DB.del_note_files(nid, all=True)
+        return self.DB.del_note_files(nid, all=True)
 
 class NotesFilesPageFromAMQP_API(Resource):
     def __init__(self, DB):
