@@ -1,112 +1,66 @@
+"""
+WebSockets with Tornado
+"""
+
 import sys
-from flask_socketio import send
-from flask import request
+import secrets
+import json
 
-from db_api.extensions   import socketio
-from db_api.common.utils import IDTools
+import tornado.web
+import tornado.websocket
+import tornado.template
+import tornado.gen
+import tornado.wsgi
 
 
-class NotesSocketIO():
-    def __init__(self, DB):
-        self.DB = DB
 
-    def on_connect(self):
-        send('Welcome', room=request.sid)
-        pass
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write('Hello, world')
 
-    def on_disconnect(self):
-        # Delete userID from list
+class WSHandler(tornado.websocket.WebSocketHandler):
+
+    def __init__(self, application, request, **kwargs):
+        super(WSHandler, self).__init__(application, request, **kwargs)
+
+    def initialize(self, database):
+        self.DB = database
+        self.user_ID = None
+        self.SID = None
+
+    def open(self):
+        self.SID = secrets.token_urlsafe(8)
+        self.DB.ws_clients[self.SID] = self
+        self.write_message("The server says: 'Hello'. Connection was accepted.")
+        print('connection for client with SID: {0} opened...'.format(self.SID), file=sys.stderr)
+
+    def on_message(self, message):
+        print("Recived:", message)
         try:
-            self.DB.userID_to_SID.pop(str(request.sid))
+            msg_json = json.loads(message)
+            self.user_ID = msg_json['user_ID']
+            self.DB.userID_to_SID[self.user_ID] = self.SID
         except:
-            print('No user_ID<->SID relation', sys.stderr)
+            self.write_message("Error")
+            print("Error reading json from websocket message", file=sys.stderr)
             return
+        self.write_message("Welcome {} you are now connected".format(self.user_ID))
+        print('New user_ID: {}'.format(self.user_ID), message, file=sys.stderr)
 
-    def on_message(self, msg):
-        send('Echo: ' + msg, room=request.sid)
-
-    def on_json(self, json):
-        try:
-            json['user_ID']
-        except:
-            print('No user_ID', sys.stderr)
-            send('Invalid JSON. No "user_ID"', room=request.sid)
-            return
-        self.DB.userID_to_SID[request.sid] = json['user_ID']
-
-"""
-class WS():
-    def __init__(self, DB):
-        self.DB = DB
-
-    #@websocket.route('/notes/ws')
-    def WSPageHandler(self, ws):
-        page = 0
-        nid  = ''
-        message = ws.receive()
-        if not self.DB.IDTools.note_exist(message):
-            ws.send('Error: Note does not exist')
-        nid = message
-        max_pages = self.DB.get_note(nid)['pages']
-
-        while not ws.closed:
-            message = ws.receive()
-            new_page = page
-            update = True
-            if message == 'up':
-                new_page += 1
-            elif message == 'down':
-                new_page -= 1
-            elif message.isdigit():
-                new_page = int(message)
-                if new_page == page:
-                    ws.send('No change')
-                    update = False
-            else:
-                ws.send('Error: Wrong command')
-                update = False
-
-            if max_pages == None and update:
-                ws.send(self.DB.get_note_file(nid, page=None))
-            elif 0 < new_page < max_pages and update:
-                page == new_page
-                ws.send(self.DB.get_note_file(nid, page))  ### Maybe something more performant (some caching)
-"""
-
-"""
-class NotesWS(Namespace):
-    def on_connect(self):
-        self.send('New connection, send the NID of the required note')
-        sid_nid_table[request.sid] = None
-        return request.sid
-
-    def on_disconnect(self):
-        return sid_nid_table.pop(request.sid)
-
-    def on_event(self, data):
-        if data == 'up':
-            sid_nid_table[request.sid] += 1
-        elif data == 'down':
-            sid_nid_table[request.sid] -= 1
-        else:
-            self.send('No change!')
-        self.send(sid_nid_table[request.sid])
+    def on_close(self):
+        self.DB.ws_clients.pop(self.user_ID, None)
+        self.DB.userID_to_SID.pop(self.user_ID)
+        print('connection closed...', file=sys.stderr)
 
 
-    def on_event(self, data):
-        if IDTools.is_valid_id(data, with_identificator=True):
-            if IDTools.note_exist(data[3:]):
-                sid_nid_table[request.sid] = data[3:]
-            else:
-                self.send('Error: NID inexistent')
-        elif data.isdigit():
-            page = int(data)
-            self.send(db.get_page(sid_nid_table[request.sid], page))
-        elif data == 'up':
-            sid_nid_page_table
-        else:
-            self.send('Error: Wrong message')
-
-        emit('my_response', data)
-"""
-
+def get_tornado_app(app, database):
+    """
+    Get Tornado app
+    """
+    flask_app=tornado.wsgi.WSGIContainer(app)
+    application = tornado.web.Application([
+        (r'/tornado?', MainHandler),
+        (r'/ws', WSHandler, {'database':database}),
+        (r'.*',tornado.web.FallbackHandler,{'fallback':flask_app })
+    ])
+    return application
