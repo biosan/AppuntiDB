@@ -36,9 +36,9 @@ class AMQP():
         print("This is AMQP raw body:", body, file=sys.stderr)
         try:
             body_json = json.loads(body)
-            body_json['note']
-            body_json['page']
-            body_json['user_ID']
+            body_json['note']    = body_json.pop('noteID')
+            body_json['page']    = body_json.pop('pageNumber')
+            body_json['user_ID'] = body_json.pop('userID')
         except:
             print("ERROR Parsing json from amqp note page request", file=sys.stderr)
             return
