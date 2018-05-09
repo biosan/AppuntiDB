@@ -28,6 +28,20 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         self.user_ID = None
         self.SID = None
 
+    ###
+    ### Disable cross-origin checks
+    ###
+    ### Warning
+    ### This is an important security measure; don’t disable it without understanding the security implications.
+    ### In particular, if your authentication is cookie-based, you must either restrict the origins allowed by check_origin()
+    ### or implement your own XSRF-like protection for websocket connections. See these articles for more.
+    ### Read more: http://www.tornadoweb.org/en/stable/websocket.html#tornado.websocket.WebSocketHandler.check_origin
+    ###
+    ### TODO: Please enable origin check when running in production!!!
+    ###
+    def check_origin(self, origin):
+        return True
+
     def open(self):
         self.SID = secrets.token_urlsafe(8)
         self.DB.ws_clients[self.SID] = self
