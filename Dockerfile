@@ -25,7 +25,7 @@ COPY run.py         .
 COPY run_amqp.py    .
 COPY run_all.sh     .
 
-RUN adduser -D myuser && chown -R myuser /app #&& chmod -R 755 /app
+RUN adduser -D myuser && chown -R myuser /app && chmod -R 755 /app
 
 USER myuser
 
