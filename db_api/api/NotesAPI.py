@@ -7,6 +7,7 @@ import io
 from flask import send_file, Response, request
 from flask_socketio import send
 import json
+import sys
 
 
 ########################
@@ -68,16 +69,18 @@ class NoteFilesAPI(Resource):
         return None
 
     def post(self, nid):
-        args = file_parser.parse_args()
+        #args = file_parser.parse_args()
+        #args = request.form
         files_bytestring = []
-        print(args)
-        #f = request.files.getlist("file[]")
-        f = args['file']
-        print(f)
-        for file in f:#.getlist('file'):
-            print('File: ', file)
-            #files_bytestring.append(bytes(file.readall()))
+        f = request.files#.getlist("file[]")
+        print(f, file=sys.stderr)
+        #f = args['file']
+        for name, file in f.items():#.getlist('file'):
+            print('name:', name, file=sys.stderr)
+            print('file:', file, file=sys.stderr)
+            print('Received file:', file.filename, file=sys.stderr)
             files_bytestring.append(bytes(file.read()))
+            #files_bytestring.append(bytes(file.readall()))
         self.DB.add_note_files(nid, files_bytestring)
         return 200
 
@@ -106,5 +109,5 @@ class NotesFilesPageFromAMQP_API(Resource):
         note_file = self.DB.get_note_file(nid, page=int(page))
         sid = self.DB.userID_to_SID[userID]
         note_file_json = json.dumps({'data':str(note_file)})
-        self.DB.ws_clients[sid].write_message(note_file_json)
+        self.DB.ws_clients[sid].write_message(note_file, binary=True)
         return 200
