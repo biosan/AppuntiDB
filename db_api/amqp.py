@@ -100,7 +100,10 @@ class AMQP():
             print("ERROR no response from API search call", body_json, file=sys.stderr)
             return None
 
-        results = [{"title":result['name'], "ID":result['NID'], "pages":result['pages']} for result in results]
+        test_zero_pages = lambda x: '0' if x in [None, 'null', 'Null', 0, '0'] else x
+
+        results = [{"title":result['name'], "ID":result['NID'], "pages":test_zero_pages(result['pages'])} for result in results]
+        print(results, file=sys.stderr)
         results = {'query_ID':body_json['query_ID'],'note_list':results}
         output_json = json.dumps(results)
         print("This is AMQP response:", output_json, file=sys.stderr)

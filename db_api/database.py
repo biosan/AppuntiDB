@@ -169,6 +169,7 @@ class AppuntiDB():
         return self.ConversionUtils.Note_Model2Dict(note)
 
     def add_tag(self, name, return_object=True):
+        name = name.lower()
         tag = self.TagsModel.query.filter_by(name=name).first()
         if tag != None:
             if tag.name == name:
@@ -195,6 +196,7 @@ class AppuntiDB():
             q = q.filter_by(owner = uid)
         if type(tags) is list:
             q = q.join(self.TagsModel, self.NotesModel.tags)
+            tags = tuple(map(str.lower, tags))
             for tag in tags:
                 q = q.filter(self.NotesModel.tags.any(self.TagsModel.name == tag))
         if query != None and query != '':
