@@ -63,16 +63,18 @@ class AMQP():
 
 
     def search_callback(self, ch, method, props, body):
+        if type(body) is bytes or type(body) is bytearray:
+            body = body.decode("utf-8")
         print("AMQP Search Callback", file=sys.stderr)
         print("This is AMQP raw body:", body, file=sys.stderr)
         try:
             body_json = json.loads(body)
-            body_json['subject']
-            body_json['teacher']
-            body_json['queryID']
-            body_json['language']
-            body_json['year']
-            body_json['university']
+            #body_json['subject']
+            #body_json['teacher']
+            #body_json['query_ID']
+            #body_json['language']
+            #body_json['year']
+            #body_json['university']
         except:
             print("ERROR", file=sys.stderr)
             return
@@ -80,9 +82,9 @@ class AMQP():
         try:
             search_tags  = list(filter(lambda x: x != None, [body_json.get('subject'),
                                                              body_json.get('teacher'),
-                                                             body_json['language'],
-                                                             body_json['year'],
-                                                             body_json['university']] ))
+                                                             body_json.get('language'),
+                                                             body_json.get('year'),
+                                                             body_json.get('university')] ))
             search_tags_string = ";".join(search_tags)
         except AttributeError:
             search_tags = None
@@ -99,7 +101,7 @@ class AMQP():
             return None
 
         results = [{"title":result['name'], "ID":result['NID']} for result in results]
-        results = {'query_ID':body_json['queryID'],'note_list':results}
+        results = {'query_ID':body_json['query_ID'],'note_list':results}
         output_json = json.dumps(results)
         print("This is AMQP response:", output_json, file=sys.stderr)
         print("This is AMQP props.reply_to:", props.reply_to, file=sys.stderr)
