@@ -70,12 +70,19 @@ class AMQP():
             body_json['subject']
             body_json['teacher']
             body_json['queryID']
+            body_json['language']
+            body_json['year']
+            body_json['university']
         except:
             print("ERROR", file=sys.stderr)
             return
         search_query = ''
         try:
-            search_tags  = list(filter(lambda x: x != None, [body_json.get('subject'), body_json.get('teacher')]))
+            search_tags  = list(filter(lambda x: x != None, [body_json.get('subject'),
+                                                             body_json.get('teacher'),
+                                                             body_json['language'],
+                                                             body_json['year'],
+                                                             body_json['university']] ))
             search_tags_string = ";".join(search_tags)
         except AttributeError:
             search_tags = None
