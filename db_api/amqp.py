@@ -100,7 +100,7 @@ class AMQP():
             print("ERROR no response from API search call", body_json, file=sys.stderr)
             return None
 
-        test_zero_pages = lambda x: '0' if x in [None, 'null', 'Null', 0, '0'] else x
+        test_zero_pages = lambda x: '0' if x in [None, 'null', 'Null', 0, '0'] else str(x)
 
         results = [{"title":result['name'], "ID":result['NID'], "pages":test_zero_pages(result['pages'])} for result in results]
         print(results, file=sys.stderr)
