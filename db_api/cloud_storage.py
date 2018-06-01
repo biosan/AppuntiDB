@@ -46,9 +46,10 @@ class B2():
         return json['uploadUrl']
 
     def __get_path(self, nid, hash, part=None):
-        path = '{}.{}'.format(nid, hash)
+        if part == None:
+            part = 0
         if type(part) is int:
-            path += '.' + str(part)
+            path = '{}.{}.{}'.format(nid, hash, part)
         print(path)
         return path
 
