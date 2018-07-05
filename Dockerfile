@@ -23,14 +23,13 @@ COPY migrations     ./migrations
 COPY manage.py      .
 COPY run.py         .
 COPY run_amqp.py    .
-COPY run_all.sh     .
 
 RUN adduser -D myuser && chown -R myuser /app && chmod -R 755 /app
 
 USER myuser
 
-# Run Flask app and Pika AMQP client
-#CMD ["sh", "run_all.sh"]
 #CMD ["python3", "run_amqp.py"]
 #CMD ["python3", "run.py"]
+
+# Run Flask app and Pika AMQP client
 CMD ["supervisord"]

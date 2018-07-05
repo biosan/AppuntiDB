@@ -1,8 +1,9 @@
-from ..extensions import db
+from db_api.extensions import db, Base
+from sqlalchemy.types import String
+from sqlalchemy.schema import Column, Table, ForeignKey
 
-TagsNotesTable = db.Table('tagsnotes',
-                    db.Column('tid', db.String(12),
-                              db.ForeignKey('tags.tid'), primary_key=True),
-                    db.Column('nid', db.String(12),
-                              db.ForeignKey('notes.nid'), primary_key=True)
-                    )
+TagsNotesTable = Table('tagsnotes',
+                       Base.metadata,
+                       Column('tid', String(12), ForeignKey('tags.tid'), primary_key=True),
+                       Column('nid', String(12), ForeignKey('notes.nid'), primary_key=True)
+                       )

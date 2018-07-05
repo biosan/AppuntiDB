@@ -1,24 +1,31 @@
-### Imports
-
+###############
+### Imports ###
+###############
 from flask_restful import reqparse, Resource
 
-
-### Request Parser
+######################
+### Request Parser ###
+######################
 search_parser = reqparse.RequestParser()
 search_parser.add_argument('query')
-search_parser.add_argument('tags')
+search_parser.add_argument('tags', action='append')
+### TODO: Add to global config.
+categories = ['teacher', 'university', 'subject', 'year']
+for c in categories:
+    search_parser.add_argument(c)
 search_parser.add_argument('uid')
 
-### Requests
+################
+### Requests ###
+################
 class SearchAPI(Resource):
-    def __init__(self, DB, resource='all'):
+    def __init__(self, DB):
         self.DB = DB
-        self.search_resource = resource
 
     def get(self):
         args = search_parser.parse_args()
-        tags = args['tags']
-        if tags != '' and tags != None:
-            tags = tags.split(';')
-        print('args[tags] = ', tags)
-        return self.DB.search(args['query'], tags, args['uid'])
+        cats = {c:args.get(c) for c in categories if args.get(c) != None}
+        return self.DB.search(query    = args['query'],
+                              tags     = args['tags'],
+                              category = cats,
+                              uid      = args['uid'])

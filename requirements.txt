@@ -9,3 +9,6 @@ gevent
 pika
 requests
 tornado
+flask_httpauth
+passlib
+argon2

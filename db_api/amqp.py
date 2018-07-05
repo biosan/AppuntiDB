@@ -88,7 +88,7 @@ class AMQP():
             search_tags_string = ";".join(search_tags)
         except AttributeError:
             search_tags = None
-        search_uid   = None
+        search_uid = None
         print("This is AMQP body:", body_json, file=sys.stderr)
 
         try:

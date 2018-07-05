@@ -1,20 +1,18 @@
-#from gevent import monkey
-#monkey.patch_all() 
 import os
+
 from flask import Flask
 from flask_restful import Api
 
 import db_api.config as     Config
 from   db_api.common import constants as COMMON_CONSTANTS
 
-from db_api.extensions    import db, migrate
-from db_api.models        import UsersModel, TagsNotesTable, TagsModel, NotesModel
+from db_api.extensions    import db, migrate, auth
+from db_api.models        import UsersModel, TagsNotesTable, TagsModel, NotesModel, CategoryTagsTable, CategoryModel
 from db_api.database      import AppuntiDB
 from db_api.api.UsersAPI  import UsersAPI, UserAPI
 from db_api.api.NotesAPI  import NotesAPI, NoteAPI, NoteFilesAPI, NoteFilesPageAPI, NotesFilesPageFromAMQP_API
 from db_api.api.SearchAPI import SearchAPI
-#from db_api.api.NotesWS   import NotesSocketIO   ### TODO: Better name
-from db_api.api.NotesWS   import get_tornado_app   ### TODO: Better name
+from db_api.api.NotesWS   import get_tornado_app
 from db_api.amqp          import AMQP
 
 def create_app(config=None, return_db=False):
@@ -51,11 +49,9 @@ def configure_extensions(app, db):
     # Flask-SQLAlchemy
     with app.app_context():
         db.init_app(app)
-        #if app.SQLALCHEMY_DATABASE_URI == 'sqlite:////tmp/test.db':
-        #    db.create_all()
         db.create_all()
     # Instatiate my database wrapper class
-    DB = AppuntiDB(db, UsersModel, NotesModel, TagsModel,
+    DB = AppuntiDB(db, UsersModel, NotesModel, TagsModel, CategoryModel,
                    {'account_id':app.config['B2_ACCOUNT_ID'],
                     'application_key': app.config['B2_APPLICATION_KEY'],
                     'bucket_id':app.config['B2_BUCKET_ID'],
@@ -63,17 +59,20 @@ def configure_extensions(app, db):
                    )
 
     # Flask-RESTful init and add resource
-    flask_api = Api(app)
-    flask_api.add_resource(UsersAPI, COMMON_CONSTANTS.BASE_URI+'/users', resource_class_args=[DB])
-    flask_api.add_resource(UserAPI,  COMMON_CONSTANTS.BASE_URI+'/users/<uid>', resource_class_args=[DB])
-    flask_api.add_resource(NotesAPI, COMMON_CONSTANTS.BASE_URI+'/notes', resource_class_args=[DB])
-    flask_api.add_resource(NoteAPI,  COMMON_CONSTANTS.BASE_URI+'/notes/<nid>', resource_class_args=[DB])
-    flask_api.add_resource(SearchAPI, COMMON_CONSTANTS.BASE_URI+'/search', resource_class_args=[DB])
-    flask_api.add_resource(NoteFilesAPI, COMMON_CONSTANTS.BASE_URI+'/files/<nid>', resource_class_args=[DB])
-    flask_api.add_resource(NoteFilesPageAPI, COMMON_CONSTANTS.BASE_URI+'/files/<nid>/<page>', resource_class_args=[DB])
-    flask_api.add_resource(NotesFilesPageFromAMQP_API, COMMON_CONSTANTS.BASE_URI+'/amqp/<nid>/<page>/<userID>', resource_class_args=[DB])
+    flask_api = Api(app, prefix=COMMON_CONSTANTS.BASE_URI)
+    flask_api.add_resource(UsersAPI, '/users', resource_class_args=[DB])
+    flask_api.add_resource(UserAPI,  '/users/<uid>', resource_class_args=[DB])
+    flask_api.add_resource(NotesAPI, '/notes', resource_class_args=[DB])
+    flask_api.add_resource(NoteAPI,  '/notes/<nid>', resource_class_args=[DB])
+    flask_api.add_resource(SearchAPI, '/search', resource_class_args=[DB])
+    flask_api.add_resource(NoteFilesAPI, '/files/<nid>', resource_class_args=[DB])
+    flask_api.add_resource(NoteFilesPageAPI, '/files/<nid>/<page>', resource_class_args=[DB])
+    flask_api.add_resource(NotesFilesPageFromAMQP_API, '/amqp/<nid>/<page>/<userID>', resource_class_args=[DB])
 
     ### Configure Tornado
     tornado_complete_app = get_tornado_app(app, DB)
+
+    ### Configure authentication
+    auth.verify_password(DB.authenticate_user)
 
     return db, DB, flask_api, tornado_complete_app

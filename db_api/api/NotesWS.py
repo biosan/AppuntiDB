@@ -43,28 +43,28 @@ class WSHandler(tornado.websocket.WebSocketHandler):
         return True
 
     def open(self):
-        self.SID = secrets.token_urlsafe(8)
+        self.SID = secrets.token_urlsafe(8)  ### TODO: Substitute with IDTools.generate_id ???
         self.DB.ws_clients[self.SID] = self
         self.write_message("The server says: 'Hello'. Connection was accepted.")
-        print('connection for client with SID: {0} opened...'.format(self.SID), file=sys.stderr)
+        ###LOGGING###print('connection for client with SID: {0} opened...'.format(self.SID), file=sys.stderr)
 
     def on_message(self, message):
-        print("Recived:", message)
+        ###LOGGING###print("Recived:", message)
         try:
             msg_json = json.loads(message)
             self.user_ID = msg_json['user_ID']
             self.DB.userID_to_SID[self.user_ID] = self.SID
         except:
             self.write_message("Error")
-            print("Error reading json from websocket message", file=sys.stderr)
+            ###LOGGING###print("Error reading json from websocket message", file=sys.stderr)
             return
         self.write_message("Welcome {} you are now connected".format(self.user_ID))
-        print('New user_ID: {}'.format(self.user_ID), message, file=sys.stderr)
+        ###LOGGING###print('New user_ID: {}'.format(self.user_ID), message, file=sys.stderr)
 
     def on_close(self):
         self.DB.ws_clients.pop(self.user_ID, None)
         self.DB.userID_to_SID.pop(self.user_ID)
-        print('connection closed...', file=sys.stderr)
+        ###LOGGING###print('connection closed...', file=sys.stderr)
 
 
 def get_tornado_app(app, database):

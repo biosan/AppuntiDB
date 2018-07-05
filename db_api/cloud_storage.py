@@ -45,33 +45,25 @@ class B2():
         self._UPLOAD_TOKEN = json['authorizationToken']
         return json['uploadUrl']
 
-    def __get_path(self, nid, hash, part=None):
-        if part == None:
-            part = 0
-        if type(part) is int:
-            path = '{}.{}.{}'.format(nid, hash, part)
-        print(path)
-        return path
-
-    def get_path(self, nid, hash, part=None):
-        return self.__get_path(nid, hash, part=part)
-
-    def upload(self, file, nid, hash, part=None):
-        up_url = self.__get_upload_url()
+    def upload(self, file, name):
+        self.__get_upload_url()
         sha1digest = hashlib.sha1(file).hexdigest()
         headers = {'Authorization'     : self._UPLOAD_TOKEN,
-                   'X-Bz-File-Name'    : self.__get_path(nid, hash, part),
+                   'X-Bz-File-Name'    : name,
                    'Content-Type'      : 'b2/x-auto',
                    'Content-Length'    : str(len(file)),
                    'X-Bz-Content-Sha1' : sha1digest}
         r = requests.post(self._UPLOAD_URL, headers=headers, data=file)
         return r.status_code, r.json()
+    
+    def delete(self, name):
+        ### TODO: Complete it!
+        pass
 
-    def download(self, nid, hash, part=None):
-        full_path = '{}/file/{}/{}'.format(self._DOWNLOAD_URL, self._BUCKET_NAME, self.__get_path(nid, hash, part))
-        print(full_path)
+    def download(self, name):
+        full_path = self._DOWNLOAD_URL + '/file/' + self._BUCKET_NAME + '/' + name
         return requests.get(full_path, headers=self._AUTH_HEADER).content
 
     def refresh(self):
-        __authorize()
-        __get_upload_url()
+        self.__authorize()
+        self.__get_upload_url()
