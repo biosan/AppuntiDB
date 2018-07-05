@@ -26,9 +26,13 @@ file_parser.add_argument('file', type=werkzeug.datastructures.FileStorage, locat
 
 
 ### Helper
-def isAuthorized(DB, nid, username):
-    if (DB.get_note(nid)['owner'] == DB.ConversionUtils.toUID(username)):
-            return True
+def isAuthorized(DB, nid, username, return_uid=False):
+    uid = DB.ConversionUtils.toUID(username)
+    if (DB.get_note(nid)['owner'] == uid):
+            if return_uid:
+                return uid
+            else:
+                return True
     else:
         return False
 

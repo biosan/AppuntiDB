@@ -19,10 +19,14 @@ pass_parser.add_argument('new_password')
 
 
 ### Helper
-def isAuthorized(DB, uid, username):
+def isAuthorized(DB, uid, username, return_uid=False):
+    uid1 = DB.ConversionUtils.toUID(uid)
     uid2 = DB.ConversionUtils.toUID(username)
-    logger.critical('uid: {} - uid2: {}'.format(uid, uid2))
-    if (uid == uid2):
+    logger.critical('uid: {} - uid2: {}'.format(uid1, uid2))
+    if (uid1 == uid2):
+        if return_uid:
+            return uid1
+        else:
             return True
     else:
         return False
@@ -75,17 +79,20 @@ class UserAPI(Resource):
 
 
 
-class Password(Resource):
+class AuthAPI(Resource):
     method_decorators = {'post': [auth.login_required]}
 
     def __init__(self, DB):
         self.DB = DB
 
-    def get(self):
-        return None
+    def get(self, anyID):
+        is_auth = isAuthorized(self.DB, anyID, auth.username(), return_uid=True)
+        if is_auth == False:
+            return "NOT AUTHORIZED"
+        return is_auth
 
-    def post(self, uid):
-        if not isAuthorized(self.DB, uid, auth.username()):
+    def post(self, anyID):
+        if not isAuthorized(self.DB, anyID, auth.username()):
             return "NOT AUTHORIZED"
         args = pass_parser.parse_args()
         return self.DB.update_user(uid=auth.username, password=args['new_password'])

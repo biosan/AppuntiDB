@@ -9,7 +9,7 @@ from   db_api.common import constants as COMMON_CONSTANTS
 from db_api.extensions    import db, migrate, auth
 from db_api.models        import UsersModel, TagsNotesTable, TagsModel, NotesModel, CategoryTagsTable, CategoryModel
 from db_api.database      import AppuntiDB
-from db_api.api.UsersAPI  import UsersAPI, UserAPI
+from db_api.api.UsersAPI  import UsersAPI, UserAPI, AuthAPI
 from db_api.api.NotesAPI  import NotesAPI, NoteAPI, NoteFilesAPI, NoteFilesPageAPI, NotesFilesPageFromAMQP_API
 from db_api.api.SearchAPI import SearchAPI
 from db_api.api.NotesWS   import get_tornado_app
@@ -62,6 +62,7 @@ def configure_extensions(app, db):
     flask_api = Api(app, prefix=COMMON_CONSTANTS.BASE_URI)
     flask_api.add_resource(UsersAPI, '/users', resource_class_args=[DB])
     flask_api.add_resource(UserAPI,  '/users/<uid>', resource_class_args=[DB])
+    flask_api.add_resource(AuthAPI,  '/users/<anyID>/auth', resource_class_args=[DB])
     flask_api.add_resource(NotesAPI, '/notes', resource_class_args=[DB])
     flask_api.add_resource(NoteAPI,  '/notes/<nid>', resource_class_args=[DB])
     flask_api.add_resource(SearchAPI, '/search', resource_class_args=[DB])
