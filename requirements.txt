@@ -10,5 +10,5 @@ pika
 requests
 tornado
 flask_httpauth
+argon2pure
 passlib
-argon2
