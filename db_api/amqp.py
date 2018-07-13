@@ -95,9 +95,10 @@ class AMQP():
             ###results = self.DB.search(search_query, search_tags, search_uid)
             results = requests.get('http://localhost:{}{}/search'.format(os.environ.get('PORT'), COMMON_CONSTANTS.BASE_URI),
                                    params={'query':'', 'tags':search_tags_string})
+            #results = requests.get('http://localhost:3400/db/api/v0.1/search', params={'query':'', 'tags':search_tags})
             results = results.json()
         except:
-            print("ERROR no response from API search call", body_json, file=sys.stderr)
+            print("ERROR no response from API search call", body_json, search_tags, file=sys.stderr)
             return None
 
         test_zero_pages = lambda x: '0' if x in [None, 'null', 'Null', 0, '0'] else str(x)

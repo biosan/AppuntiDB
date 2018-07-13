@@ -37,3 +37,15 @@ docker run db_api -p INT_PORT:EXT_PORT
     3. Upload note's file
     4. Delete note's file
     5. Search notes
+
+/users/<uid>
+/users
+
+/notes
+/notes/<nid>
+
+/search
+
+/files/<nid>
+/files/<nid>/page
+

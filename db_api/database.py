@@ -30,7 +30,6 @@ class AppuntiDB():
         self.ws_clients = dict()
 
 
-
     ###
     ### Search
     ###
@@ -58,7 +57,7 @@ class AppuntiDB():
             q = q.filter(self.NotesModel.name.contains(query))
 
         output = [self.ConversionUtils.Note_Model2Dict(note) for note in q.all()]
-        logger.debug('AppuntiDB.search (query={}, tags={}, uid={}) => output:{}'.format(query, tags, uid, output))
+        logger.critical('AppuntiDB.search (query={}, tags={}, uid={}) => output:{}'.format(query, tags, uid, output))
         return output
 
 
@@ -125,7 +124,7 @@ class AppuntiDB():
         self.db.session.delete(user)
         self.db.session.commit()
         logger.debug('User deleted: {}'.format(user))
-        return user.uid 
+        return user.uid
 
 
     def authenticate_user(self, anyID, password):
@@ -273,10 +272,10 @@ class AppuntiDB():
             self.b2.delete(paths[i])
             paths.remove(i)
         note_model.path  = paths
-        note_model.pages = len(paths) 
+        note_model.pages = len(paths)
         self.db.session.commit()
 
-        
+
     def append_note_files(self, nid, files):
         if self.IDTools.note_exist(nid):
             note = self.get_note(nid)
@@ -310,7 +309,7 @@ class AppuntiDB():
                     return tag
                 else:
                     return tag.tid
-        
+
         new_tid = self.IDTools.get_new_ID()
         new_tag = self.TagsModel(tid = new_tid, name = name)
 
@@ -318,7 +317,7 @@ class AppuntiDB():
             category = self.CategoryModel.query.filter_by(name=category_name).first()
             if category != None:
                 new_tag.category = [category]
-        
+
         self.db.session.add(new_tag)
         self.db.session.commit()
 

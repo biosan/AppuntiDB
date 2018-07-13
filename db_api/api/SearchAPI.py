@@ -18,6 +18,7 @@ search_parser.add_argument('uid')
 ################
 ### Requests ###
 ################
+"""
 class SearchAPI(Resource):
     def __init__(self, DB):
         self.DB = DB
@@ -29,3 +30,17 @@ class SearchAPI(Resource):
                               tags     = args['tags'],
                               category = cats,
                               uid      = args['uid'])
+"""
+
+class SearchAPI(Resource):
+    def __init__(self, DB, resource='all'):
+        self.DB = DB
+        self.search_resource = resource
+
+    def get(self):
+        args = search_parser.parse_args()
+        tags = args['tags']
+        if tags != '' and tags != None:
+            tags = tags.split(';')
+        print('args[tags] = ', tags)
+        return self.DB.search(query=args['query'], tags=tags, uid=args['uid'])
