@@ -8,7 +8,8 @@ from flask_restful import reqparse, Resource
 ######################
 search_parser = reqparse.RequestParser()
 search_parser.add_argument('query')
-search_parser.add_argument('tags', action='append')
+###search_parser.add_argument('tags', action='append')
+search_parser.add_argument('tags')
 ### TODO: Add to global config.
 categories = ['teacher', 'university', 'subject', 'year']
 for c in categories:

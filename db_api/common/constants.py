@@ -5,3 +5,5 @@ INSTANCE_FOLDER_PATH = os.path.join('/tmp', 'instance')
 
 VERSION = '0.1'
 BASE_URI = '/db/api/v{}'.format(VERSION)
+
+CATEGORIES = ['teacher', 'university', 'subject', 'year', 'language']

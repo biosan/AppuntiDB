@@ -3,10 +3,10 @@ import os
 from flask import Flask
 from flask_restful import Api
 
-import db_api.config as     Config
+import db_api.config as Config
 from   db_api.common import constants as COMMON_CONSTANTS
 
-from db_api.extensions    import db, migrate, auth
+from db_api.extensions    import db, migrate, auth, logger
 from db_api.models        import UsersModel, TagsNotesTable, TagsModel, NotesModel, CategoryTagsTable, CategoryModel
 from db_api.database      import AppuntiDB
 from db_api.api.UsersAPI  import UsersAPI, UserAPI, AuthAPI
@@ -75,5 +75,7 @@ def configure_extensions(app, db):
 
     ### Configure authentication
     auth.verify_password(DB.authenticate_user)
+
+    logger.setLevel(app.config['LOGGING_LEVEL'])
 
     return db, DB, flask_api, tornado_complete_app

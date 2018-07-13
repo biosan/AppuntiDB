@@ -1,5 +1,19 @@
-import os
+import os, logging
 from db_api.common.constants import INSTANCE_FOLDER_PATH
+
+def get_logging_level(LEVEL):
+    SWITCH = {
+        'CRITICAL': logging.CRITICAL,
+        'ERROR'   : logging.ERROR,
+        'WARNING' : logging.WARNING,
+        'INFO'    : logging.INFO,
+        'DEBUG'   : logging.DEBUG,
+        'NOTSET'  : logging.NOTSET
+    }
+    if type(LEVEL) is int and 0 < LEVEL < 50:
+        return LEVEL
+    return SWITCH[LEVEL]
+
 
 class BaseConfig(object):
 
@@ -21,10 +35,16 @@ class BaseConfig(object):
    BASE_ADDRESS = os.environ.get('ADDRESS', '0.0.0.0')
    PORT = int(os.environ.get('PORT', 80))
 
+   LOGGING = 'ERROR'
+   LOGGING_LEVEL = get_logging_level(os.environ.get('LOGGING_LEVEL', LOGGING))
+
+
+
 class DefaultConfig(BaseConfig):
 
    # Statement for enabling the development environment
    DEBUG = True
+   LOGGING = 'DEBUG'
 
    # Secret key for signing cookies
    SECRET_KEY = 'development key'

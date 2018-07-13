@@ -4,6 +4,7 @@
 from flask import send_file, Response, request
 from flask_restful import reqparse, Resource
 from db_api.extensions import logger, auth
+from db_api.common.constants import CATEGORIES as categories
 import werkzeug
 import json
 import io
@@ -16,8 +17,6 @@ note_parser = reqparse.RequestParser()
 note_parser.add_argument('name')
 note_parser.add_argument('owner')
 note_parser.add_argument('tags', action='append')
-### TODO: Add to global config
-categories = ['teacher', 'university', 'subject', 'year']
 for c in categories:
     note_parser.add_argument(c)
 

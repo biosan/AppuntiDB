@@ -13,7 +13,7 @@ RUN apk update && \
     pip3 install --no-cache-dir -r ./requirements.txt && \
     apk del build-base python3-dev
 
-RUN apk add --no-cache python py-pip && pip2 install --no-cache-dir supervisor
+RUN apk add --no-cache python py-pip && pip2 install --no-cache-dir supervisor supervisor-stdout
 COPY supervisord.conf /etc/.
 RUN mkdir ./app_logs
 #COPY app_logs       ./app_logs

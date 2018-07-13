@@ -69,41 +69,34 @@ class AMQP():
         print("This is AMQP raw body:", body, file=sys.stderr)
         try:
             body_json = json.loads(body)
-            #body_json['subject']
-            #body_json['teacher']
-            #body_json['query_ID']
-            #body_json['language']
-            #body_json['year']
-            #body_json['university']
         except:
             print("ERROR", file=sys.stderr)
             return
-        search_query = ''
+        if body_json.get('query') != None:
+            search_query = body_json.get('query')
+        else:
+            search_query = ''
         try:
-            search_tags  = list(filter(lambda x: x != None, [body_json.get('subject'),
-                                                             body_json.get('teacher'),
-                                                             body_json.get('language'),
-                                                             body_json.get('year'),
-                                                             body_json.get('university')] ))
-            search_tags_string = ";".join(search_tags)
+            search_tags = body_json.get('tags')
+            search_categories = {c:body_json.get(c) for c in COMMON_CONSTANTS.CATEGORIES if body_json.get(c)!=None}
         except AttributeError:
-            search_tags = None
+            search_tags = []
+            search_categories = {}
         search_uid = None
         print("This is AMQP body:", body_json, file=sys.stderr)
 
         try:
-            ###results = self.DB.search(search_query, search_tags, search_uid)
+            search_params = {'query':search_query, 'tags':search_tags}
+            search_params.update(search_categories)
             results = requests.get('http://localhost:{}{}/search'.format(os.environ.get('PORT'), COMMON_CONSTANTS.BASE_URI),
-                                   params={'query':'', 'tags':search_tags_string})
-            #results = requests.get('http://localhost:3400/db/api/v0.1/search', params={'query':'', 'tags':search_tags})
+                                   params=search_params)
             results = results.json()
         except:
             print("ERROR no response from API search call", body_json, search_tags, file=sys.stderr)
             return None
 
         test_zero_pages = lambda x: '0' if x in [None, 'null', 'Null', 0, '0'] else str(x)
-
-        results = [{"title":result['name'], "ID":result['NID'], "pages":test_zero_pages(result['pages'])} for result in results]
+        results = [{k:v for k,v in result.items() if k != 'path'} for result in results]
         print(results, file=sys.stderr)
         results = {'query_ID':body_json['query_ID'],'note_list':results}
         output_json = json.dumps(results)
