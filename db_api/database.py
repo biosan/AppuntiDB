@@ -28,20 +28,61 @@ class AppuntiDB():
                      bucket_name     = b2_dict['bucket_name'])
         self.userID_to_SID = dict()
         self.ws_clients = dict()
+        self.ws_clients.pop   ('a',    'a')
 
 
     ###
     ### Search
     ###
-    def search(self, query, tags=[], uid=None, category={}):
+    def search(self, query='', tags=[], uid=None, category={}):
 
         if query == None:
-            return None
+            query = ''
 
         q = self.NotesModel.query
 
         if uid != None and self.IDTools.user_exist(uid):
             q = q.filter_by(owner = uid)
+
+        ### TODO: Search in categories
+        #if type(category) is dict and len(category)>0:
+        #   for cat, value in category:
+        #       q = q.filter(self.NotesModel.tags.any(self.TagsModel.name == tag))
+        #
+        # - Check if category is a valid dictionary
+        # - Filter category dictionary by allowed categories
+        # - For every k,v pair in category filter the query
+        #   - How to filter?
+        #   - For every tag search if it has category 'cat'
+        #   - If yes then compare and add to query
+        #   - If yes then 
+        #
+        #####################
+        # 1. Cercare tag con categoria adatta
+        category_tags_tid = []
+        if type(category) is dict and len(category)>0:
+            for cat, value in category.items():
+                """
+                category_model_item = self.CategoryModel.query.filter(self.CategoryModel.name == cat).first()
+                if category_model_item == None:
+                    break
+                tag_model_item = self.TagsModel.query.filter(self.TagsModel.name == value)
+                tag_model_item = tag_model_item.join(self.CategoryModel, self.TagsModel.category).filter(self.TagsModel.category.any(self.CategoryModel.cid == category_model_item.cid)).first()
+                if tag_model_item == None:
+                    break
+                category_tags_tid.append(tag_model_item.tid)
+                """
+                tag_model_item= self.db.session.query(self.TagsModel).join(self.CategoryModel, self.TagsModel.category)\
+                                              .filter(self.TagsModel.name == value)\
+                                              .filter(self.CategoryModel.name == cat).first()
+                if tag_model_item == None:
+                    break
+                category_tags_tid.append(tag_model_item.tid)
+                ### TODO: It could work?
+                ###category_tags_tid = [t.tid for t in self.TagsModel if t.category.name == cat and t.name == value]
+
+
+        #####################
         if type(tags) is list:
             q = q.join(self.TagsModel, self.NotesModel.tags)
             tags = tuple(map(str.lower, tags))
@@ -49,15 +90,15 @@ class AppuntiDB():
             tags = tags + tuple(category.values())
             for tag in tags:
                 q = q.filter(self.NotesModel.tags.any(self.TagsModel.name == tag))
-        ### TODO: Search in categories
-        #if type(category) is dict and len(category)>0:
-        #   for cat, value in category:
-        #        q = q.filter(self.NotesModel.tags.any(self.TagsModel.name == tag))
-        if query != None and query != '':
+
+        for tid in category_tags_tid:
+            q = q.filter(self.NotesModel.tags.any(self.TagsModel.tid == tid))
+
+        if query != '':
             q = q.filter(self.NotesModel.name.contains(query))
 
         output = [self.ConversionUtils.Note_Model2Dict(note) for note in q.all()]
-        logger.critical('AppuntiDB.search (query={}, tags={}, uid={}) => output:{}'.format(query, tags, uid, output))
+        logger.debug('AppuntiDB.search (query={}, tags={}, uid={}) => output:{}'.format(query, tags, uid, output))
         return output
 
 
@@ -330,32 +371,3 @@ class AppuntiDB():
     def add_tag_json(self, tag_json, return_object=True):
         pass
 
-
-
-    ###
-    ### Useful stuff
-    ###
-    # TODO: Add to common utils
-    def hash_func(self, x):
-        output = ''
-        try:
-            iter(x)
-            output = map(self.sha256, x)
-        except TypeError:
-            output = self.sha256(x)
-        output = list(map(lambda x: str(base64.b16encode(x))[2:-1], output))
-        return output
-
-
-    def sha256(self, x):
-        return hashlib.sha256(bytes(x)).digest()
-
-
-    def __mix_bytes(self, a, b):
-        return bytes(map(lambda x, y: (x+y)%256, a, b))
-
-
-    def __multi_file_hash(self, files, other_hashes=[]):
-        out = base64.b16encode(reduce(self.__mix_bytes, tuple(map(self.sha256, files)) + tuple(map())))
-        out = str(out)[2:-1]
-        return out

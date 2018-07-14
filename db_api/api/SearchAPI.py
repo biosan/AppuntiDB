@@ -2,6 +2,8 @@
 ### Imports ###
 ###############
 from flask_restful import reqparse, Resource
+from db_api.extensions import logger
+import sys
 
 ######################
 ### Request Parser ###
@@ -19,7 +21,6 @@ search_parser.add_argument('uid')
 ################
 ### Requests ###
 ################
-"""
 class SearchAPI(Resource):
     def __init__(self, DB):
         self.DB = DB
@@ -27,6 +28,7 @@ class SearchAPI(Resource):
     def get(self):
         args = search_parser.parse_args()
         cats = {c:args.get(c) for c in categories if args.get(c) != None}
+        print('Categories: {}'.format(cats), file=sys.stderr)
         return self.DB.search(query    = args['query'],
                               tags     = args['tags'],
                               category = cats,
@@ -45,3 +47,4 @@ class SearchAPI(Resource):
             tags = tags.split(';')
         print('args[tags] = ', tags)
         return self.DB.search(query=args['query'], tags=tags, uid=args['uid'])
+        """
