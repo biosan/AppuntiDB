@@ -34,6 +34,23 @@ class AppuntiDB():
     ###
     ### Search
     ###
+
+    def search2(self, query='', tags=[], uid=None, category={}):
+        output_list = lambda q: [self.ConversionUtils.Note_Model2Dict(note) for note in q.all()]
+        q = self.NotesModel.query
+        if uid != None and self.IDTools.user_exist(uid):
+            q = q.filter(self.NotesModel.owner == uid)
+        if query != '' and query != None:
+            q = q.filter(self.NotesModel.name.ilike('%'+query+'%'))
+        if q.count() == 0:
+            return output_list(q)
+        q = q.join(self.TagsModel, self.NotesModel.tags)
+        q = q.join(self.CategoryModel, self.TagsModel.category)
+        for tag in tags:
+            q = q.filter(self.NotesModel.tags.any(self.TagsModel.name == tag))
+
+
+
     def search(self, query='', tags=[], uid=None, category={}):
 
         if query == None:
@@ -268,7 +285,7 @@ class AppuntiDB():
         if page==None:
             for page_path in note['path']:
                 files.append(self.b2.download(name = page_path))
-        elif (0 <= page < note['pages']):
+        elif (0 <= page < note['pages'] and type(note['path']) is list and len(note['path'])>0):
             files = self.b2.download(name = note['path'][page])
         else:
             abort(404)

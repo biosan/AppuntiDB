@@ -95,13 +95,27 @@ class AMQP():
             print("ERROR no response from API search call", body_json, search_tags, file=sys.stderr)
             return None
 
+        ### Some useful lambdas
+        #results = [{"title":result['name'], "ID":result['nid'], "pages":test_zero_pages(result['pages'])} for result in results]
         test_zero_pages = lambda x: '0' if x in [None, 'null', 'Null', 0, '0'] else str(x)
-        results = [{k:v for k,v in result.items() if k != 'path'} for result in results]
+        convert_to_old = lambda x: {"title":x['name'], "ID":result['nid'], "pages":test_zero_pages(x['pages'])}
+        ### Dictionary to send back
+        results = [{k:v for k,v in result.items() if k != 'path' or v in [None, '']} for result in results]
+        ### Some format conversion
+        def convert(dictionary):
+            d = dictionary.copy()
+            d['title'] = d.pop('name')
+            d['ID'] = d.pop('nid')
+            d['pages'] = test_zero_pages(d.pop('pages'))
+            d.pop('path', '')
+            d.pop('tags', '')
+            return d
+        results = list(map(convert, results))
         print(results, file=sys.stderr)
         results = {'query_ID':body_json['query_ID'],'note_list':results}
         output_json = json.dumps(results)
-        print("This is AMQP response:", output_json, file=sys.stderr)
-        print("This is AMQP props.reply_to:", props.reply_to, file=sys.stderr)
+        #print("This is AMQP response:", output_json, file=sys.stderr)
+        #print("This is AMQP props.reply_to:", props.reply_to, file=sys.stderr)
         reply_queue = props.reply_to
         if reply_queue == None: reply_queue = self.search_reply_queue
         corr_id = props.correlation_id
