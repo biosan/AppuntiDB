@@ -55,7 +55,7 @@ class B2():
                    'X-Bz-Content-Sha1' : sha1digest}
         r = requests.post(self._UPLOAD_URL, headers=headers, data=file)
         return r.status_code, r.json()
-    
+
     def delete(self, name):
         ### TODO: Complete it!
         pass

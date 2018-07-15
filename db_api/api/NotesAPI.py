@@ -8,6 +8,7 @@ from db_api.common.constants import CATEGORIES as categories
 import werkzeug
 import json
 import io
+import sys
 
 
 ########################
@@ -106,8 +107,8 @@ class NoteFilesAPI(Resource):
         return 200
 
     def post(self, nid):
-        if not isAuthorized(self.DB, nid, auth.username()):
-            return "NOT AUTHORIZED"
+        #if not isAuthorized(self.DB, nid, auth.username()):
+        #    return "NOT AUTHORIZED"
         files_bytestring = []
         f = request.files
         ###LOGGING###print(f, file=sys.stderr)
@@ -147,5 +148,6 @@ class NotesFilesPageFromAMQP_API(Resource):
     def get(self, nid, page, userID):
         note_file = self.DB.get_note_file(nid, page=int(page))
         sid = self.DB.userID_to_SID[userID]
+        print("Note file to send to ws cliend {} is: {}".format(sid, note_file), file=sys.stderr)
         self.DB.ws_clients[sid].write_message(note_file, binary=True)
         return 200

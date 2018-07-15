@@ -202,7 +202,7 @@ class AppuntiDB():
         return list(map(self.ConversionUtils.Note_Model2Dict, notes))
 
 
-    def add_note(self, name, owner, tags=[], category_tags=[]):
+    def add_note(self, name, owner, tags=[], category_tags={}):
         new_nid = self.IDTools.get_new_ID()
         new_note = {
             'type' : 'note',
@@ -213,10 +213,14 @@ class AppuntiDB():
             'pages': None
         }
         new_note = self.ConversionUtils.Note_Dict2Model(new_note)
+        if type(tags) != list:
+            tags = []
+        if type(category_tags) != dict:
+            category_tags = {}
         for tag in tags:
             tag_obj = self.add_tag(tag)
             new_note.tags.append(tag_obj)
-        for category, tag in category_tags:
+        for category, tag in category_tags.items():
             tag_obj = self.add_tag(tag, category)
             new_note.tags.append(tag_obj)
         self.db.session.add(new_note)
@@ -388,3 +392,27 @@ class AppuntiDB():
     def add_tag_json(self, tag_json, return_object=True):
         pass
 
+    ### TODO: Add to common utils
+    def hash_func(self, x):
+        output = ''
+        try:
+            iter(x)
+            output = map(self.sha256, x)
+        except TypeError:
+            output = self.sha256(x)
+        output = list(map(lambda x: str(base64.b16encode(x))[2:-1], output))
+        return output
+
+
+    def sha256(self, x):
+        return hashlib.sha256(bytes(x)).digest()
+
+
+    def __mix_bytes(self, a, b):
+        return bytes(map(lambda x, y: (x+y)%256, a, b))
+
+
+    def __multi_file_hash(self, files, other_hashes=[]):
+        out = base64.b16encode(reduce(self.__mix_bytes, tuple(map(self.sha256, files)) + tuple(map())))
+        out = str(out)[2:-1]
+        return out
