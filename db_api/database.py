@@ -5,6 +5,8 @@ from passlib.hash import argon2
 from functools import reduce
 from db_api.extensions import logger, auth
 
+import sys
+
 
 def abort(code):
     pass
@@ -219,12 +221,15 @@ class AppuntiDB():
         for tag in tags:
             tag_obj = self.add_tag(tag)
             new_note.tags.append(tag_obj)
+            print('tags: {}'.format(tag), file=sys.stderr)
         for category, tag in category_tags.items():
             tag_obj = self.add_tag(tag, category)
             new_note.tags.append(tag_obj)
+            print('cat tags: {}:{}'.format(category, tag), file=sys.stderr)
         self.db.session.add(new_note)
         self.db.session.commit()
         logger.critical('Added new note: {}'.format(new_note))
+        print('Added new note: {}'.format(new_note), file=sys.stderr)
         return new_nid
 
 

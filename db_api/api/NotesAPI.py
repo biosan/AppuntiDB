@@ -53,8 +53,12 @@ class NotesAPI(Resource):
 
     def post(self):
         args = note_parser.parse_args()
-        category_tags = [(c, args[c]) for c in categories]
-        category_tags = list(filter(lambda x: x[1] != None, category_tags))
+        #category_tags = [(c, args[c]) for c in categories]
+        category_tags = {c:args[c] for c in categories if args[c] != None}
+        logger.critical('Category Tags: {}'.format(category_tags))
+        #category_tags = list(filter(lambda x: x[1] != None, category_tags))
+        #category_tags.
+        #logger.critical('Category Filtered Tags: {}'.format(category_tags))
         logger.debug('NotesAPI.post - category_tags: {}'.format(category_tags))
         new_nid = self.DB.add_note(args['name'], args['owner'],
                                    args['tags'], category_tags)
