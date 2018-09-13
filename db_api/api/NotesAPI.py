@@ -4,7 +4,7 @@
 from flask import send_file, Response, request
 from flask_restful import reqparse, Resource
 from db_api.extensions import logger, auth
-from db_api.common.constants import CATEGORIES as categories
+from db_api.common.constants import CATEGORIES
 import werkzeug
 import json
 import io
@@ -14,12 +14,14 @@ import sys
 ########################
 ### Requests Parsers ###
 ########################
+categories = CATEGORIES
 note_parser = reqparse.RequestParser()
 note_parser.add_argument('name')
 note_parser.add_argument('owner')
 note_parser.add_argument('tags', action='append')
 for c in categories:
     note_parser.add_argument(c)
+    logger.critical('c: {}'.format(c))
 
 file_parser = reqparse.RequestParser()
 file_parser.add_argument('file', type=werkzeug.datastructures.FileStorage, location='files', action='append')

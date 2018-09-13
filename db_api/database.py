@@ -1,4 +1,4 @@
-from db_api.common.utils  import ConversionUtils, IDTools
+from db_api.common.utils  import ConversionUtils, IDTools, HashStuff
 from db_api.cloud_storage import B2
 import hashlib, base64
 from passlib.hash import argon2
@@ -28,7 +28,6 @@ class AppuntiDB():
                      bucket_name     = b2_dict['bucket_name'])
         self.userID_to_SID = dict()
         self.ws_clients = dict()
-        self.ws_clients.pop   ('a',    'a')
 
 
     ###
@@ -131,11 +130,11 @@ class AppuntiDB():
     def add_user(self, username, password, mail=None):
         new_uid = self.IDTools.get_new_ID()
         new_user = {
-            'type':     'user',
-            'uid':      str(new_uid),
-            'username': str(username),
-            'mail':     str(mail)
-            }
+        'type':     'user',
+        'uid':      str(new_uid),
+        'username': str(username),
+        'mail':     str(mail)
+        }
         new_user_model = self.ConversionUtils.User_Dict2Model(new_user)
         new_user_model.password = argon2.hash(str(password))
         self.db.session.add(new_user_model)
@@ -225,7 +224,7 @@ class AppuntiDB():
             new_note.tags.append(tag_obj)
         self.db.session.add(new_note)
         self.db.session.commit()
-        logger.debug('Added new note: {}'.format(new_note))
+        logger.critical('Added new note: {}'.format(new_note))
         return new_nid
 
 
@@ -298,18 +297,17 @@ class AppuntiDB():
 
     def add_note_files(self, nid, files):
         if self.IDTools.note_exist(nid):
-            note = self.NotesModel.query.filter_by(nid=nid).first()
+            note_model = self.NotesModel.query.filter_by(nid=nid).first()
         else:
-            abort(404)  ### ADD CORRECT CODE
+            return None
         if type(files) != list:
             files = list(files)
-        ###LOGGING###print('add_note_file x type: ', type(files), file=sys.stderr)
         ###LOGGING###print('add_note_file x: ', files, file=sys.stderr)
-        files_hash_list = self.hash_func(files)
+        files_hash_list = HashStuff.hash_func(files)
         for i, file in enumerate(files):
             self.b2.upload(file, name = files_hash_list[i])
-        note.path = files_hash_list
-        note.pages = len(files)
+        note_model.path = files_hash_list
+        note_model.pages = len(files)
         self.db.session.commit()
 
 
@@ -346,15 +344,13 @@ class AppuntiDB():
             abort(404)  ### ADD CORRECT CODE
         if type(files) != list:
             files = list(files)
-        files_hash_list = self.hash_func(files)
-        new_pages = note['pages']
+        files_hash_list = HashStuff.hash_func(files)
         new_paths = note['path'].copy()
         for i, file in enumerate(files):
             self.b2.upload(file, name = files_hash_list[i])
-            new_paths = note['path'].append(files_hash_list[i])
-            new_pages += 1
-        note_model.path = new_paths
-        note_model.page = new_pages
+            new_paths.append(files_hash_list[i])
+        note_model.path  = new_paths
+        note_model.pages = len(new_paths)
         self.db.session.commit()
 
 
@@ -391,28 +387,3 @@ class AppuntiDB():
 
     def add_tag_json(self, tag_json, return_object=True):
         pass
-
-    ### TODO: Add to common utils
-    def hash_func(self, x):
-        output = ''
-        try:
-            iter(x)
-            output = map(self.sha256, x)
-        except TypeError:
-            output = self.sha256(x)
-        output = list(map(lambda x: str(base64.b16encode(x))[2:-1], output))
-        return output
-
-
-    def sha256(self, x):
-        return hashlib.sha256(bytes(x)).digest()
-
-
-    def __mix_bytes(self, a, b):
-        return bytes(map(lambda x, y: (x+y)%256, a, b))
-
-
-    def __multi_file_hash(self, files, other_hashes=[]):
-        out = base64.b16encode(reduce(self.__mix_bytes, tuple(map(self.sha256, files)) + tuple(map())))
-        out = str(out)[2:-1]
-        return out

@@ -6,6 +6,7 @@ import secrets
 import requests
 
 from db_api.common import constants as COMMON_CONSTANTS
+from db_api.extensions import logger
 
 class AMQP():
     def __init__(self, broker_url, users_queue, notes_queue, search_queue, search_reply_queue):
@@ -57,7 +58,7 @@ class AMQP():
 
             #ch.basic_ack(delivery_tag = method.delivery_tag)
         except:
-            print("ERROR Sending note page http request from amqp callback to flask", file=sys.stderr)
+            logger.critical("ERROR Sending note page http request from amqp callback to flask")
             return
 
 

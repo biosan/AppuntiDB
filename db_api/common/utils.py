@@ -1,7 +1,6 @@
 from db_api.extensions import logger
-from base64 import urlsafe_b64encode, urlsafe_b64decode
-import random
-import secrets
+from base64 import urlsafe_b64encode, urlsafe_b64decode, b16encode, b16decode
+import secrets, random, hashlib
 
 
 ########################
@@ -47,7 +46,7 @@ class ConversionUtils():
                 note[tag.category[0].name] = tag.name
             else:
                 note['tags'].append(tag.name)
-            
+
         return note
 
     def Note_Dict2Model(self, note_dict):
@@ -59,7 +58,7 @@ class ConversionUtils():
         #for tag in note_dict['tags']:
         #    note.tags.append(tag)
         return note
-    
+
     #def Tag_Dict2Model(self, tag_dict):
     #    tag = self.TagsModel(tid = tag_dict['tid'],
     #                         name = tag_dict['name'])
@@ -74,7 +73,7 @@ class ConversionUtils():
             return query[0].uid
         else:
             return None
-    
+
     def toUsername(self, uid):
         query = self.UsersModel.query.filter_by(uid=uid).first()
         if query != None:
@@ -129,10 +128,10 @@ class IDTools():
 
     def tag_exist(self, tid):
         return self.TagsModel.query.filter_by(tid=tid).first() != None
-    
+
     def username_exist(self, username):
         pass
-    
+
     def mail_exist(self, mail):
         pass
 
@@ -156,3 +155,28 @@ class IDTools():
             return None
         else:
             return uniques[0]
+
+
+class HashStuff():
+    def sha256(x):
+        return hashlib.sha256(bytes(x)).digest()
+
+    def __mix_bytes(a, b):
+        return bytes(map(lambda x, y: (x+y)%256, a, b))
+
+    def __multi_file_hash(files, other_hashes=[]):
+        out = b16encode(reduce(__mix_bytes, tuple(map(HashStuff.sha256, files)) + tuple(map())))
+        out = str(out)[2:-1]
+        return out
+
+    def hash_func(x):
+        output = ''
+        try:
+            iter(x)
+            output = map(HashStuff.sha256, x)
+        except TypeError:
+            output = HashStuff.sha256(x)
+        output = list(map(lambda x: str(b16encode(x))[2:-1], output))
+        return output
+
+

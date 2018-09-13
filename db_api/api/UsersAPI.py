@@ -80,7 +80,8 @@ class UserAPI(Resource):
 
 
 class AuthAPI(Resource):
-    method_decorators = {'post': [auth.login_required]}
+    method_decorators = {'post' : [auth.login_required]}
+                        #'get'  : [auth.login_required]}
 
     def __init__(self, DB):
         self.DB = DB
@@ -89,7 +90,7 @@ class AuthAPI(Resource):
         is_auth = isAuthorized(self.DB, anyID, auth.username(), return_uid=True)
         if is_auth == False:
             return "NOT AUTHORIZED"
-        return is_auth
+        return {'UID':is_auth}
 
     def post(self, anyID):
         if not isAuthorized(self.DB, anyID, auth.username()):

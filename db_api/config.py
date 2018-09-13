@@ -25,6 +25,8 @@ class BaseConfig(object):
    DEBUG = False
    TESTING = False
 
+   SQLALCHEMY_TRACK_MODIFICATIONS = False
+
    B2_ACCOUNT_ID      = os.environ.get('B2_ACCOUNT_ID')#, '768fd2cae9aa')
    B2_APPLICATION_KEY = os.environ.get('B2_APPLICATION_KEY')#, '000e640240ab835b063f8c8cc27d45ef97f43d1f31')
 
